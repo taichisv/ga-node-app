@@ -2,10 +2,6 @@ const request = require('supertest');
 const app = require('../server');
 
 describe('API Tests', () => {
-    beforeEach(() => {
-        jest.useFakeTimers();
-    });
-
     afterEach(() => {
         jest.useRealTimers();
     });
@@ -17,6 +13,7 @@ describe('API Tests', () => {
     });
 
     test('POST /api/memos should add a new memo successfully', async () => {
+        jest.useFakeTimers();
         jest.setSystemTime(new Date('2026-09-06T14:30:00'));
 
         const res = await request(app)
@@ -28,6 +25,7 @@ describe('API Tests', () => {
     });
 
     test('GET /api/memos should return memo text with timestamp prefix as stored', async () => {
+        jest.useFakeTimers();
         jest.setSystemTime(new Date('2026-09-06T14:30:00'));
 
         await request(app)
