@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>一言掲示板</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
+        ul { padding-left: 20px; }
+        input { padding: 6px; width: 70%; }
+        button { padding: 6px 12px; }
+    </style>
+</head>
+<body>
+    <h1>一言掲示板 (CI/CD Sample)</h1>
+    <div>
+        <input type="text" id="memoInput" placeholder="メモを入力...">
+        <button onclick="addMemo()">投稿</button>
+    </div>
+    <ul id="memoList"></ul>
+
+    <script>
+        async function fetchMemos() {
+            const res = await fetch('/api/memos');
+            const memos = await res.json();
+            const list = document.getElementById('memoList');
+            list.innerHTML = memos.map(m => `<li>${m.text}</li>`).join('');
+        }
+
+        async function addMemo() {
+            const input = document.getElementById('memoInput');
+            const text = input.value;
+            if (!text) return;
+
+            await fetch('/api/memos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            input.value = '';
+            fetchMemos();
+        }
+
+        fetchMemos();
+    </script>
+</body>
+</html>

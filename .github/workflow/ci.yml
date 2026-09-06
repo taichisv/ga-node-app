@@ -1,0 +1,36 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run unit/integration tests
+      run: npm test
+
+    - name: Build Docker image
+      run: docker build -t ga-node-app .
+
+    - name: Run Docker container and verify
+      run: |
+        docker run -d -p 3000:3000 --name memo-container ga-node-app
+        # コンテナが起動し、正しくAPI応答を返すかcurlで確認
+        sleep 3
+        curl -f http://localhost:3000/api/memos || exit 1

@@ -1,0 +1,7 @@
+# 依存関係（npm installで生成されるもの）
+node_modules/
+
+# OSやエディタの一時ファイル
+.DS_Store
+Thumbs.db
+.vscode/
