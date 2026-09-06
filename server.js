@@ -2,6 +2,12 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function formatTimestamp(date) {
+    const pad = (value) => String(value).padStart(2, '0');
+
+    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 // インメモリのメモデータ
 let memos = [
     { id: 1, text: 'Hello GitHub Actions & Docker!' }
@@ -21,7 +27,10 @@ app.post('/api/memos', (req, res) => {
     if (!text) {
         return res.status(400).json({ error: 'Text is required' });
     }
-    const newMemo = { id: memos.length + 1, text };
+    const newMemo = {
+        id: memos.length + 1,
+        text: `${formatTimestamp(new Date())} ${text}`
+    };
     memos.push(newMemo);
     res.status(201).json(newMemo);
 });
