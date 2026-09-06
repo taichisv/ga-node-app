@@ -5,3 +5,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Playwright関連の成果物・レポート
+/test-results/
+/test-results-screen/
+/playwright-report/
+/playwright/.cache/

@@ -28,9 +28,19 @@ jobs:
     - name: Build Docker image
       run: docker build -t ga-node-app .
 
-    - name: Run Docker container and verify
+    - name: Run Docker container and E2E tests
       run: |
+      # 1. バックグラウンドでDockerコンテナを起動
         docker run -d -p 3000:3000 --name memo-container ga-node-app
         # コンテナが起動し、正しくAPI応答を返すかcurlで確認
         sleep 3
-        curl -f http://localhost:3000/api/memos || exit 1
+      # 2. Playwrightのブラウザ環境のセットアップとテスト実行
+        npx playwright install --with-deps
+        npx playwright test
+
+    - name: Upload Screenshots on failure or success
+      uses: actions/upload-artifact@v4
+      if: always() # テストが成功しても失敗してもアップロードする
+      with:
+        name: e2e-screenshots
+        path: test-results/
