@@ -35,6 +35,24 @@ app.post('/api/memos', (req, res) => {
     res.status(201).json(newMemo);
 });
 
+// DELETE: 管理者によるメモ削除
+app.delete('/api/admin/memos/:id', (req, res) => {
+    const adminHeader = req.get('x-admin');
+    if (adminHeader !== 'true') {
+        return res.status(403).json({ error: 'Admin access is required' });
+    }
+
+    const memoId = Number(req.params.id);
+    const memoIndex = memos.findIndex((memo) => memo.id === memoId);
+
+    if (memoIndex === -1) {
+        return res.status(404).json({ error: 'Memo not found' });
+    }
+
+    const [deletedMemo] = memos.splice(memoIndex, 1);
+    res.json(deletedMemo);
+});
+
 // テスト用にappをエクスポート。直接実行された時だけサーバーを起動
 if (require.main === module) {
     app.listen(PORT, () => {
