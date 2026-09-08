@@ -74,4 +74,38 @@ describe('API Tests', () => {
 
         expect(deleteRes.statusCode).toEqual(403);
     });
+
+    test('PATCH /api/memos/:id should update an existing memo', async () => {
+        const createRes = await request(app)
+            .post('/api/memos')
+            .send({ text: '訂正前メモ' });
+
+        const updateRes = await request(app)
+            .patch(`/api/memos/${createRes.body.id}`)
+            .send({ text: '訂正後メモ' });
+
+        expect(updateRes.statusCode).toEqual(200);
+        expect(updateRes.body.id).toEqual(createRes.body.id);
+        expect(updateRes.body.text).toEqual('訂正後メモ');
+    });
+
+    test('PATCH /api/memos/:id should return 400 for whitespace-only text', async () => {
+        const createRes = await request(app)
+            .post('/api/memos')
+            .send({ text: '検証用メモ' });
+
+        const updateRes = await request(app)
+            .patch(`/api/memos/${createRes.body.id}`)
+            .send({ text: '   ' });
+
+        expect(updateRes.statusCode).toEqual(400);
+    });
+
+    test('PATCH /api/memos/:id should return 404 for non-existing memo', async () => {
+        const updateRes = await request(app)
+            .patch('/api/memos/999999')
+            .send({ text: '更新失敗' });
+
+        expect(updateRes.statusCode).toEqual(404);
+    });
 });

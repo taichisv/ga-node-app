@@ -19,11 +19,38 @@
     <ul id="memoList"></ul>
 
     <script>
+        let latestMemos = [];
+        let editingMemoId = null;
+        let editingMemoText = '';
+        let editingError = '';
+
+        function escapeHtml(text) {
+            return String(text)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
         async function fetchMemos() {
             const res = await fetch('/api/memos');
             const memos = await res.json();
+            latestMemos = memos;
             const list = document.getElementById('memoList');
-            list.innerHTML = memos.map(m => `<li>${m.text} <button onclick="deleteMemo(${m.id})">削除</button></li>`).join('');
+            list.innerHTML = memos.map((m) => {
+                if (editingMemoId === m.id) {
+                    return `
+                        <li>
+                            <input type="text" id="editMemoInput-${m.id}" value="${escapeHtml(editingMemoText)}">
+                            <button onclick="saveMemoEdit(${m.id})">保存</button>
+                            <button onclick="cancelMemoEdit()">キャンセル</button>
+                            ${editingError ? `<div style="color: red; margin-top: 4px;">${escapeHtml(editingError)}</div>` : ''}
+                        </li>
+                    `;
+                }
+                return `<li>${escapeHtml(m.text)} <button onclick="startMemoEdit(${m.id})">訂正</button> <button onclick="deleteMemo(${m.id})">削除</button></li>`;
+            }).join('');
         }
 
         async function addMemo() {
@@ -45,6 +72,53 @@
                 method: 'DELETE',
                 headers: { 'x-admin': 'true' }
             });
+            fetchMemos();
+        }
+
+        function startMemoEdit(id) {
+            const memo = latestMemos.find((item) => item.id === id);
+            if (!memo) return;
+            editingMemoId = id;
+            editingMemoText = memo.text;
+            editingError = '';
+            fetchMemos();
+        }
+
+        function cancelMemoEdit() {
+            editingMemoId = null;
+            editingMemoText = '';
+            editingError = '';
+            fetchMemos();
+        }
+
+        async function saveMemoEdit(id) {
+            const input = document.getElementById(`editMemoInput-${id}`);
+            const rawText = input ? input.value : '';
+            editingMemoText = rawText;
+            const text = rawText.trim();
+
+            if (!text) {
+                editingError = '本文を入力してください';
+                fetchMemos();
+                return;
+            }
+
+            const res = await fetch(`/api/memos/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                editingError = data.error || '保存に失敗しました';
+                fetchMemos();
+                return;
+            }
+
+            editingMemoId = null;
+            editingMemoText = '';
+            editingError = '';
             fetchMemos();
         }
 
