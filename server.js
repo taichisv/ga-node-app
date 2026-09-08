@@ -35,6 +35,24 @@ app.post('/api/memos', (req, res) => {
     res.status(201).json(newMemo);
 });
 
+// PATCH: メモの訂正
+app.patch('/api/memos/:id', (req, res) => {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+        return res.status(400).json({ error: 'Text is required' });
+    }
+
+    const memoId = Number(req.params.id);
+    const memo = memos.find((item) => item.id === memoId);
+
+    if (!memo) {
+        return res.status(404).json({ error: 'Memo not found' });
+    }
+
+    memo.text = text.trim();
+    res.json(memo);
+});
+
 // DELETE: 管理者によるメモ削除
 app.delete('/api/admin/memos/:id', (req, res) => {
     const adminHeader = req.get('x-admin');
